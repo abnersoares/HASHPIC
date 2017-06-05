@@ -1,0 +1,104 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>HASHPIC</title>
+
+<link rel="stylesheet" href="css/conteudo.css" type="text/css" />
+
+<script type="text/javascript" src="js/func.js"></script>
+
+</head>
+
+<body>
+
+<div id="iconeCamera"><a href="camera.html"><img src="images/iconeCamera.png" width="60" border="0" /></a></div>
+
+<div id="logo">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="40"><a href="inicio.html"><img src="images/logo.png" width="30" border="0" /></a></td>
+      <td><a href="inicio.html">HASHPIC</a></td>
+    </tr>
+  </table>
+</div>
+
+<div id="line"></div>
+
+<div id="hashs"></div>
+
+<div id="espacoCamera"></div>
+
+<script type="text/javascript" src="cordova.js"></script>
+<script type="text/javascript">
+	
+	var lista_hashs = new Array();
+	var contador 	= 0; 
+	
+    document.addEventListener("deviceready", onDeviceReady, false);
+	
+	function exibirHashs(){
+		
+		for(var j=0; j<lista_hashs.length; j++){
+		
+			var html = document.getElementById('hashs').innerHTML;
+			
+			document.getElementById('hashs').innerHTML = html + "<div onclick=\"goUrl('hash.html?nome="+lista_hashs[j]+"')\">#"+lista_hashs[j]+"</div>";
+			
+		}
+		
+	}
+	
+    function populateDB(tx) {
+    }
+
+    function queryDB(tx) {
+		tx.executeSql('SELECT DISTINCT(hashtag) FROM POSTAGENS', [], querySuccess, errorCB);
+    }
+
+    function querySuccess(tx, results) {
+		var len = results.rows.length;
+
+        for (var i=0; i<len; i++){
+			
+			var _hash = results.rows.item(i).hashtag;
+			_hash.trim();
+			
+			var res   = _hash.split(" ");
+			
+			for(var j=0; j<res.length; j++){
+				if( res[j] != '' ){
+					if( lista_hashs.indexOf( res[j] ) == '-1' ){
+						lista_hashs[contador] = res[j];
+						contador++;
+					}
+				}
+			}
+			
+        }
+		
+		if( len == 0 )
+			document.getElementById('hashs').innerHTML = 'Nenhuma hashtag encontrada!';
+		else
+			exibirHashs();
+		
+    }
+
+    function errorCB(err) {
+        console.log("Error processing SQL: "+err.code);
+    }
+
+    function successCB() {
+        var db = window.openDatabase("hashpic", "1.0", "HashPic", 200000);
+        db.transaction(queryDB, errorCB);
+    }
+
+    function onDeviceReady() {
+        var db = window.openDatabase("hashpic", "1.0", "HashPic", 200000);
+        db.transaction(populateDB, errorCB, successCB);
+    }
+
+</script>
+
+</body>
+</html>

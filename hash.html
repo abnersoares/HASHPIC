@@ -1,0 +1,71 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>HASHPIC</title>
+
+<link rel="stylesheet" href="css/conteudo.css" type="text/css" />
+
+<script type="text/javascript" src="js/func.js"></script>
+
+</head>
+
+<body>
+
+<div id="logo">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="40"><a href="inicio.html"><img src="images/logo.png" width="30" border="0" /></a></td>
+      <td><a href="inicio.html">HASHPIC</a></td>
+    </tr>
+  </table>
+</div>
+
+<div id="line"></div>
+
+<div id="tituloHash"></div>
+
+<div id="todasHashs"></div>
+
+<script type="text/javascript" src="cordova.js"></script>
+<script type="text/javascript" src="js/hash.js"></script>
+<script type="text/javascript">
+
+    document.addEventListener("deviceready", onDeviceReady, false);
+
+    function populateDB(tx) {
+    }
+
+    function queryDB(tx) {
+		var nome = _GET('nome');
+		tx.executeSql("SELECT * FROM POSTAGENS WHERE hashtag LIKE '%"+nome+"%'", [], querySuccess, errorCB);
+    }
+
+    function querySuccess(tx, results) {
+		var len = results.rows.length;
+
+        for (var i=0; i<len; i++){
+			var html = document.getElementById('todasHashs').innerHTML;
+			document.getElementById('todasHashs').innerHTML = html + "<div class=\"hashImagem\"><img src=\"data:image/jpeg;base64,"+results.rows.item(i).imagem +"\" width=\"100%\" /></div>";
+			
+        }
+    }
+
+    function errorCB(err) {
+        console.log("Error processing SQL: "+err.code);
+    }
+
+    function successCB() {
+        var db = window.openDatabase("hashpic", "1.0", "HashPic", 200000);
+        db.transaction(queryDB, errorCB);
+    }
+
+    function onDeviceReady() {
+        var db = window.openDatabase("hashpic", "1.0", "HashPic", 200000);
+        db.transaction(populateDB, errorCB, successCB);
+    }
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>HASHPIC</title>
+
+<link rel="stylesheet" href="css/conteudo.css" type="text/css" />
+
+<script type="text/javascript" src="js/func.js"></script>
+
+<script type="text/javascript">
+var novoId = 0;
+var imagem = '';
+var primeiraVez = 0;
+var sucessoPostagem = 0;
+</script>
+
+</head>
+
+<body>
+
+<div id="logo">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="40"><a href="inicio.html"><img src="images/logo.png" width="30" border="0" /></a></td>
+      <td><a href="inicio.html">HASHPIC</a></td>
+    </tr>
+  </table>
+</div>
+
+<div id="line"></div>
+
+<div id="tituloHash">Nova Postagem</div>
+
+<script type="text/javascript" src="cordova.js"></script>
+<script type="text/javascript">
+
+    document.addEventListener("deviceready", onDeviceReady_BD, false);
+
+    function populateDB(tx) {
+		if( primeiraVez != 0 ){
+			
+			if( document.getElementById('novaHash').value != '' && imagem != '' ){
+				var novahash = document.getElementById('novaHash').value;
+				novahash 	 = novahash.toLowerCase();
+				tx.executeSql('INSERT INTO POSTAGENS (id, hashtag, imagem) VALUES ('+novoId+', "'+novahash+'", "'+imagem+'")');
+				sucessoPostagem = 1;
+			}else{
+				alert("Preencha todos os campos corretamente!");	
+			}
+			
+		}else{
+			primeiraVez = 1;	
+		}
+    }
+
+    function queryDB(tx) {
+		tx.executeSql('SELECT * FROM POSTAGENS', [], querySuccess, errorCB);
+    }
+
+    function querySuccess(tx, results) {
+		var len = results.rows.length;
+		novoId = len+1;
+		
+		if( sucessoPostagem == 1 ){
+			alert("Postagem efetuada com sucesso!");
+			window.location = 'inicio.html';
+		}
+		
+    }
+
+    function errorCB(err) {
+        console.log("Error processing SQL: "+err.code);
+    }
+
+    function successCB() {
+        var db = window.openDatabase("hashpic", "1.0", "HashPic", 200000);
+        db.transaction(queryDB, errorCB);
+    }
+
+    function onDeviceReady_BD() {
+        var db = window.openDatabase("hashpic", "1.0", "HashPic", 200000);
+        db.transaction(populateDB, errorCB, successCB);
+    }
+
+</script>
+
+<script type="text/javascript" charset="utf-8">
+    var pictureSource;
+    var destinationType;
+
+    document.addEventListener("deviceready", onDeviceReady, false);
+
+
+    function onDeviceReady() {
+        pictureSource = navigator.camera.PictureSourceType;
+        destinationType = navigator.camera.DestinationType;
+    }
+
+    function onPhotoDataSuccess(imageData) {
+
+        var date = ""
+        var d = new Date();
+        date = "" + d.getDate() + "-" + (d.getMonth() + 1) + "-"
+                + d.getFullYear();
+
+        var smallImage = document.getElementById('smallImage');
+
+        smallImage.style.display = 'block';
+
+        smallImage.src = "data:image/jpeg;base64," + imageData;
+		
+		//// GRAVA A IMAGEM BINARIA NO BANCO
+		imagem = imageData;
+
+        window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, gotFS, fail);
+
+        function gotFS(fileSystem) {
+            fileSystem.root.getFile("image/" + date + ".jpeg", {
+                create : true,
+                exclusive : false
+            }, gotFileEntry, fail);
+        }
+        function gotFileEntry(fileEntry) {
+            fileEntry.createWriter(gotFileWriter, fail);
+        }
+        function gotFileWriter(writer) {
+            var data = "data:image/jpeg;base64," + imageData;
+            writer.write(data);
+
+        }
+        function fail(error) {
+            console.log(error.code);
+        }
+    }
+
+
+    function onPhotoURISuccess(imageURI) {
+
+        var largeImage = document.getElementById('largeImage');
+
+        largeImage.style.display = 'block';
+
+        largeImage.src = imageURI;
+    }
+
+
+    function capturePhoto() {
+        navigator.camera.getPicture(onPhotoDataSuccess, onFail, {
+            quality : 50,
+            destinationType : destinationType.DATA_URL
+        });
+    }
+
+    function capturePhotoEdit() {
+        navigator.camera.getPicture(onPhotoDataSuccess, onFail, {
+            quality : 20,
+            allowEdit : true,
+            destinationType : destinationType.DATA_URL
+        });
+    }
+
+    function getPhoto(source) {
+        navigator.camera.getPicture(onPhotoURISuccess, onFail, {
+            quality : 50,
+            destinationType : destinationType.FILE_URI,
+            sourceType : source
+        });
+    }
+
+    function onFail(message) {
+		
+    }
+    function savePhoto(source) {
+
+    }
+</script>
+
+
+<input type="button" onClick="capturePhoto();" value="Tirar Foto" style="width:100%; padding:20px 0 20px 0; background:#F60" />
+
+<br /><br />
+
+<img style="display: none; width:100%;" id="smallImage" src="" />
+
+<br />
+
+<div style="font-size:10px; font-weight:bold; margin-bottom:5px">* SEPERE AS HASHTAGS COM ESPA&Ccedil;O</div>
+
+<input type="text" id="novaHash" name="novaHash" placeholder="Hashtag" style="width:99%" />
+
+<br /><br />
+
+<input type="button" name="Salvar" id="Salvar" value="Postar" onclick="onDeviceReady_BD()" />
+
+</body>
+</html>

@@ -1,0 +1,1 @@
+document.getElementById('tituloHash').innerHTML = 'Busca por: #' + _GET('nome');
